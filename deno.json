@@ -1,0 +1,43 @@
+{
+  "name": "@dreamer/notification",
+  "version": "1.0.0-beta.1",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./types": "./src/types.ts",
+    "./utils": "./src/utils.ts",
+    "./email": "./src/email.ts",
+    "./webpush": "./src/webpush.ts",
+    "./sms": "./src/sms.ts",
+    "./webhook": "./src/webhook.ts",
+    "./subscription": "./src/subscription.ts",
+    "./template": "./src/template.ts",
+    "./queue": "./src/queue.ts"
+  },
+  "imports": {
+    "@dreamer/email": "jsr:@dreamer/email@^1.0.0-beta.4",
+    "@dreamer/test": "jsr:@dreamer/test@^1.0.0-beta.40"
+  },
+  "tasks": {
+    "test": "deno test -A tests/",
+    "check": "deno check src/mod.ts",
+    "lint": "deno lint src/ tests/",
+    "fmt": "deno fmt src/ tests/"
+  },
+  "publish": {
+    "include": [
+      "src/**/*.ts",
+      "deno.json",
+      "README.md",
+      "LICENSE.md"
+    ],
+    "exclude": [
+      "tests/**",
+      "**/*.test.ts"
+    ]
+  },
+  "nodeModulesDir": "auto",
+  "compilerOptions": {
+    "strict": true,
+    "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns", "deno.window"]
+  }
+}
