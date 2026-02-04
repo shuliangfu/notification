@@ -9,15 +9,15 @@
  */
 
 import type {
-  NotificationType,
+  EmailOptions,
   NotificationContent,
   NotificationResult,
+  NotificationType,
   PushSubscription,
-  EmailOptions,
   SmsOptions,
 } from "./types.ts";
 
-import { generateNotificationId, createErrorResult } from "./utils.ts";
+import { createErrorResult, generateNotificationId } from "./utils.ts";
 
 // ============================================================================
 // 类型定义
@@ -26,7 +26,12 @@ import { generateNotificationId, createErrorResult } from "./utils.ts";
 /**
  * 任务状态
  */
-export type TaskStatus = "pending" | "processing" | "completed" | "failed" | "cancelled";
+export type TaskStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | "cancelled";
 
 /**
  * 任务优先级
@@ -44,7 +49,11 @@ export interface NotificationTask {
   /** 接收者（邮箱、手机号、订阅等） */
   recipient: string | string[] | PushSubscription | PushSubscription[];
   /** 通知内容或选项 */
-  payload: NotificationContent | EmailOptions | SmsOptions | Record<string, unknown>;
+  payload:
+    | NotificationContent
+    | EmailOptions
+    | SmsOptions
+    | Record<string, unknown>;
   /** 任务状态 */
   status: TaskStatus;
   /** 优先级 */
@@ -237,7 +246,8 @@ export class MemoryTaskStore implements TaskStore {
         low: 3,
       };
 
-      const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      const priorityDiff = priorityOrder[a.priority] -
+        priorityOrder[b.priority];
       if (priorityDiff !== 0) {
         return priorityDiff;
       }
@@ -377,7 +387,11 @@ export class NotificationQueue {
   async enqueue(options: {
     type: NotificationType;
     recipient: string | string[] | PushSubscription | PushSubscription[];
-    payload: NotificationContent | EmailOptions | SmsOptions | Record<string, unknown>;
+    payload:
+      | NotificationContent
+      | EmailOptions
+      | SmsOptions
+      | Record<string, unknown>;
     priority?: TaskPriority;
     scheduledAt?: number | Date;
     maxRetries?: number;
@@ -418,12 +432,16 @@ export class NotificationQueue {
     tasks: Array<{
       type: NotificationType;
       recipient: string | string[] | PushSubscription | PushSubscription[];
-      payload: NotificationContent | EmailOptions | SmsOptions | Record<string, unknown>;
+      payload:
+        | NotificationContent
+        | EmailOptions
+        | SmsOptions
+        | Record<string, unknown>;
       priority?: TaskPriority;
       scheduledAt?: number | Date;
       maxRetries?: number;
       metadata?: Record<string, unknown>;
-    }>
+    }>,
   ): Promise<string[]> {
     const ids: string[] = [];
     for (const task of tasks) {
@@ -528,10 +546,12 @@ export class NotificationQueue {
       console.error("队列处理错误:", error);
     }
 
-    // 安排下一次轮询
-    this.pollTimer = setTimeout(() => {
-      this.poll();
-    }, this.config.pollInterval) as unknown as number;
+    // 安排下一次轮询（仅在仍运行时安排，避免 stop() 后产生孤儿定时器导致内存泄漏）
+    if (this.running) {
+      this.pollTimer = setTimeout(() => {
+        this.poll();
+      }, this.config.pollInterval) as unknown as number;
+    }
   }
 
   /**
@@ -546,13 +566,13 @@ export class NotificationQueue {
 
     // 获取待处理任务
     const tasks = await this.config.store.getPending(
-      Math.min(availableSlots, this.config.batchSize)
+      Math.min(availableSlots, this.config.batchSize),
     );
 
     if (tasks.length === 0) {
       // 检查可重试任务
       const retryableTasks = await this.config.store.getRetryable(
-        Math.min(availableSlots, this.config.batchSize)
+        Math.min(availableSlots, this.config.batchSize),
       );
 
       for (const task of retryableTasks) {
@@ -605,7 +625,9 @@ export class NotificationQueue {
         throw new Error(result.error || "发送失败");
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error
+        ? error.message
+        : String(error);
 
       // 检查是否可以重试
       if (task.retryCount < task.maxRetries) {
@@ -678,7 +700,9 @@ export class NotificationQueue {
  * @param config - 队列配置
  * @returns 通知队列实例
  */
-export function createNotificationQueue(config: QueueConfig): NotificationQueue {
+export function createNotificationQueue(
+  config: QueueConfig,
+): NotificationQueue {
   return new NotificationQueue(config);
 }
 
@@ -689,7 +713,7 @@ export function createNotificationQueue(config: QueueConfig): NotificationQueue 
  * @returns 使用内存存储的通知队列
  */
 export function createMemoryNotificationQueue(
-  senders: Partial<Record<NotificationType, NotificationSender>>
+  senders: Partial<Record<NotificationType, NotificationSender>>,
 ): NotificationQueue {
   return new NotificationQueue({
     store: new MemoryTaskStore(),

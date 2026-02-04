@@ -38,6 +38,13 @@
   "nodeModulesDir": "auto",
   "compilerOptions": {
     "strict": true,
-    "lib": ["esnext", "dom", "dom.iterable", "dom.asynciterable", "deno.ns", "deno.window"]
+    "lib": [
+      "esnext",
+      "dom",
+      "dom.iterable",
+      "dom.asynciterable",
+      "deno.ns",
+      "deno.window"
+    ]
   }
 }
