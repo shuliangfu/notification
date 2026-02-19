@@ -10,24 +10,28 @@
  */
 
 import {
-  SmtpClient,
-  renderTemplate,
-  type Message,
-  type SmtpConfig,
-  type MessageOptions,
   type EmailAttachment,
+  type Message,
+  type MessageOptions,
+  renderTemplate,
+  SmtpClient,
+  type SmtpConfig,
 } from "@dreamer/email";
 
 // 重新导出供外部使用
-export { SmtpClient, renderTemplate };
-export type { Message, SmtpConfig, MessageOptions, EmailAttachment };
+export { renderTemplate, SmtpClient };
+export type { EmailAttachment, Message, MessageOptions, SmtpConfig };
 
 // 从 @dreamer/email 导入工厂函数用于导出
 export { createMessage, createTemplateMessage } from "@dreamer/email";
 
 import type { EmailConfig, EmailOptions, NotificationResult } from "./types.ts";
 
-import { createSuccessResult, createErrorResult, generateNotificationId } from "./utils.ts";
+import {
+  createErrorResult,
+  createSuccessResult,
+  generateNotificationId,
+} from "./utils.ts";
 
 // ============================================================================
 // 邮箱验证
@@ -57,7 +61,7 @@ export function isValidEmail(email: string): boolean {
  * @returns 验证结果
  */
 export function validateEmails(
-  emails: string[]
+  emails: string[],
 ): { valid: string[]; invalid: string[] } {
   const valid: string[] = [];
   const invalid: string[] = [];
@@ -88,17 +92,15 @@ export function validateEmails(
  * });
  * ```
  */
-export function createEmailPayload(options: EmailOptions): Record<string, unknown> {
+export function createEmailPayload(
+  options: EmailOptions,
+): Record<string, unknown> {
   const to = Array.isArray(options.to) ? options.to : [options.to];
   const cc = options.cc
-    ? Array.isArray(options.cc)
-      ? options.cc
-      : [options.cc]
+    ? Array.isArray(options.cc) ? options.cc : [options.cc]
     : undefined;
   const bcc = options.bcc
-    ? Array.isArray(options.bcc)
-      ? options.bcc
-      : [options.bcc]
+    ? Array.isArray(options.bcc) ? options.bcc : [options.bcc]
     : undefined;
 
   return {
@@ -355,7 +357,9 @@ export class EmailSender {
         await this.connect();
       } catch (error) {
         return createErrorResult(
-          `SMTP 连接失败: ${error instanceof Error ? error.message : String(error)}`
+          `SMTP 连接失败: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
         );
       }
     }
@@ -423,7 +427,9 @@ export class EmailSender {
    * });
    * ```
    */
-  async sendTemplate(options: TemplateEmailOptions): Promise<NotificationResult> {
+  async sendTemplate(
+    options: TemplateEmailOptions,
+  ): Promise<NotificationResult> {
     // 获取模板
     const template = this.templates.get(options.templateId);
     if (!template) {
@@ -433,8 +439,12 @@ export class EmailSender {
     // 渲染模板
     const variables = options.variables as Record<string, string>;
     const subject = renderTemplate(template.subject, variables);
-    const text = template.text ? renderTemplate(template.text, variables) : undefined;
-    const html = template.html ? renderTemplate(template.html, variables) : undefined;
+    const text = template.text
+      ? renderTemplate(template.text, variables)
+      : undefined;
+    const html = template.html
+      ? renderTemplate(template.html, variables)
+      : undefined;
 
     // 发送邮件
     return await this.send({
@@ -468,7 +478,7 @@ export class EmailSender {
    */
   async sendBatch(
     emails: EmailOptions[],
-    options: BatchSendOptions = {}
+    options: BatchSendOptions = {},
   ): Promise<BatchSendResult> {
     const {
       batchSize = 10,
@@ -482,7 +492,9 @@ export class EmailSender {
         await this.connect();
       } catch (error) {
         // 连接失败，所有邮件都标记为失败
-        const errorMsg = `SMTP 连接失败: ${error instanceof Error ? error.message : String(error)}`;
+        const errorMsg = `SMTP 连接失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`;
         return {
           total: emails.length,
           success: 0,
@@ -499,7 +511,11 @@ export class EmailSender {
     let shouldStop = false;
 
     // 按批次并发发送
-    for (let batchStart = 0; batchStart < emails.length; batchStart += batchSize) {
+    for (
+      let batchStart = 0;
+      batchStart < emails.length;
+      batchStart += batchSize
+    ) {
       if (shouldStop) break;
 
       const batchEnd = Math.min(batchStart + batchSize, emails.length);
@@ -560,7 +576,7 @@ export class EmailSender {
    */
   async sendTemplateBatch(
     emails: TemplateEmailOptions[],
-    options: BatchSendOptions = {}
+    options: BatchSendOptions = {},
   ): Promise<BatchSendResult> {
     const {
       batchSize = 10,
@@ -573,7 +589,9 @@ export class EmailSender {
       try {
         await this.connect();
       } catch (error) {
-        const errorMsg = `SMTP 连接失败: ${error instanceof Error ? error.message : String(error)}`;
+        const errorMsg = `SMTP 连接失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`;
         return {
           total: emails.length,
           success: 0,
@@ -590,7 +608,11 @@ export class EmailSender {
     let shouldStop = false;
 
     // 按批次并发发送
-    for (let batchStart = 0; batchStart < emails.length; batchStart += batchSize) {
+    for (
+      let batchStart = 0;
+      batchStart < emails.length;
+      batchStart += batchSize
+    ) {
       if (shouldStop) break;
 
       const batchEnd = Math.min(batchStart + batchSize, emails.length);
@@ -669,7 +691,7 @@ export class EmailSender {
       appName?: string;
       /** 自定义主题 */
       subject?: string;
-    } = {}
+    } = {},
   ): Promise<NotificationResult> {
     const { expiresIn = 5, appName = "系统", subject } = options;
 
@@ -715,7 +737,7 @@ export class EmailSender {
       appName?: string;
       /** 用户名 */
       username?: string;
-    } = {}
+    } = {},
   ): Promise<NotificationResult> {
     const { expiresIn = 30, appName = "系统", username } = options;
 
@@ -767,7 +789,7 @@ export class EmailSender {
       username?: string;
       /** 登录链接 */
       loginLink?: string;
-    } = {}
+    } = {},
   ): Promise<NotificationResult> {
     const { appName = "系统", username, loginLink } = options;
 
@@ -777,8 +799,8 @@ export class EmailSender {
         ${username ? `<p style="color: #666;">尊敬的 ${username}：</p>` : ""}
         <p style="color: #666;">感谢您注册成为我们的用户。您的账号已创建成功！</p>
         ${
-          loginLink
-            ? `
+      loginLink
+        ? `
         <div style="text-align: center; margin: 30px 0;">
           <a href="${loginLink}" 
              style="background: #28a745; color: white; padding: 12px 30px; 
@@ -787,8 +809,8 @@ export class EmailSender {
           </a>
         </div>
         `
-            : ""
-        }
+        : ""
+    }
         <p style="color: #999; font-size: 12px; margin-top: 40px;">
           此邮件由 ${appName} 自动发送，请勿回复。
         </p>
@@ -827,4 +849,3 @@ export class EmailSender {
 export function createEmailSender(config: EmailSenderConfig): EmailSender {
   return new EmailSender(config);
 }
-

@@ -17,6 +17,7 @@ import type {
   SmsOptions,
 } from "./types.ts";
 
+import { $tr } from "./i18n.ts";
 import { createErrorResult, generateNotificationId } from "./utils.ts";
 
 // ============================================================================
@@ -543,7 +544,8 @@ export class NotificationQueue {
     try {
       await this.processBatch();
     } catch (error) {
-      console.error("队列处理错误:", error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error($tr("notification.queue.processError", { message }));
     }
 
     // 安排下一次轮询（仅在仍运行时安排，避免 stop() 后产生孤儿定时器导致内存泄漏）
@@ -605,7 +607,9 @@ export class NotificationQueue {
       // 获取发送器
       const sender = this.config.senders[task.type];
       if (!sender) {
-        throw new Error(`未配置 ${task.type} 类型的发送器`);
+        throw new Error(
+          $tr("notification.queue.senderNotConfigured", { type: task.type }),
+        );
       }
 
       // 发送通知
@@ -622,7 +626,7 @@ export class NotificationQueue {
         this.config.onCompleted(task, result);
       } else {
         // 失败
-        throw new Error(result.error || "发送失败");
+        throw new Error(result.error || $tr("notification.queue.sendFailed"));
       }
     } catch (error) {
       const errorMessage = error instanceof Error

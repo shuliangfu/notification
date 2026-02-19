@@ -7,7 +7,7 @@
  * - 用户订阅管理
  */
 
-import type { PushSubscription, NotificationType } from "./types.ts";
+import type { NotificationType, PushSubscription } from "./types.ts";
 
 // ============================================================================
 // 类型定义
@@ -68,7 +68,10 @@ export interface SubscriptionStore {
    * @param type - 可选的通知类型过滤
    * @returns 订阅记录列表
    */
-  getByUser(userId: string, type?: NotificationType): Promise<SubscriptionRecord[]>;
+  getByUser(
+    userId: string,
+    type?: NotificationType,
+  ): Promise<SubscriptionRecord[]>;
 
   /**
    * 获取指定类型的所有订阅
@@ -86,7 +89,7 @@ export interface SubscriptionStore {
    */
   update(
     id: string,
-    updates: Partial<Omit<SubscriptionRecord, "id" | "userId" | "createdAt">>
+    updates: Partial<Omit<SubscriptionRecord, "id" | "userId" | "createdAt">>,
   ): Promise<void>;
 
   /**
@@ -157,7 +160,7 @@ export class MemorySubscriptionStore implements SubscriptionStore {
    */
   getByUser(
     userId: string,
-    type?: NotificationType
+    type?: NotificationType,
   ): Promise<SubscriptionRecord[]> {
     const results: SubscriptionRecord[] = [];
 
@@ -192,7 +195,7 @@ export class MemorySubscriptionStore implements SubscriptionStore {
    */
   update(
     id: string,
-    updates: Partial<Omit<SubscriptionRecord, "id" | "userId" | "createdAt">>
+    updates: Partial<Omit<SubscriptionRecord, "id" | "userId" | "createdAt">>,
   ): Promise<void> {
     const record = this.subscriptions.get(id);
     if (record) {
@@ -287,7 +290,7 @@ export class SubscriptionManager {
   async addPushSubscription(
     userId: string,
     subscription: PushSubscription,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): Promise<string> {
     const id = this.generateId();
     const now = Date.now();
@@ -317,7 +320,7 @@ export class SubscriptionManager {
   async addEmailSubscription(
     userId: string,
     email: string,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): Promise<string> {
     const id = this.generateId();
     const now = Date.now();
@@ -347,7 +350,7 @@ export class SubscriptionManager {
   async addSmsSubscription(
     userId: string,
     phone: string,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): Promise<string> {
     const id = this.generateId();
     const now = Date.now();
@@ -377,7 +380,7 @@ export class SubscriptionManager {
   async addWebhookSubscription(
     userId: string,
     url: string,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): Promise<string> {
     const id = this.generateId();
     const now = Date.now();
@@ -415,7 +418,7 @@ export class SubscriptionManager {
    */
   async getUserSubscriptions(
     userId: string,
-    type?: NotificationType
+    type?: NotificationType,
   ): Promise<SubscriptionRecord[]> {
     return await this.store.getByUser(userId, type);
   }
@@ -450,7 +453,7 @@ export class SubscriptionManager {
    */
   async removeUserSubscriptions(
     userId: string,
-    type?: NotificationType
+    type?: NotificationType,
   ): Promise<void> {
     const records = await this.store.getByUser(userId, type);
     for (const record of records) {
@@ -484,7 +487,7 @@ export class SubscriptionManager {
    */
   async updateMetadata(
     id: string,
-    metadata: Record<string, unknown>
+    metadata: Record<string, unknown>,
   ): Promise<void> {
     const record = await this.store.get(id);
     if (record) {
@@ -538,7 +541,7 @@ export class SubscriptionManager {
  * @returns 订阅管理器实例
  */
 export function createSubscriptionManager(
-  options: SubscriptionManagerOptions
+  options: SubscriptionManagerOptions,
 ): SubscriptionManager {
   return new SubscriptionManager(options);
 }

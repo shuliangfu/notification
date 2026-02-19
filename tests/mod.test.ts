@@ -2,49 +2,31 @@
  * @fileoverview 通知模块综合测试
  */
 
-import { describe, it, expect, beforeEach } from "@dreamer/test";
+import { beforeEach, describe, expect, it } from "@dreamer/test";
+import type { SubscriptionManager, TemplateManager } from "../src/mod.ts";
 import {
-  // 基础功能
-  createWebPushPayload,
-  createSmsPayload,
-  createWebhookPayload,
-  createWebhookSignature,
-  verifyWebhookSignature,
-  isValidEmail,
-  isValidPhoneNumber,
-  formatPhoneNumber,
-  isValidPushSubscription,
-  createSuccessResult,
-  createErrorResult,
-  generateNotificationId,
-  getAvailableChannels,
-
-  // Web Push
-  WebPushSender,
-  generateVapidKeys,
-
-  // 短信
-  SmsSender,
   createAliyunSmsSender,
+  createMemoryNotificationQueue,
+  createMemorySubscriptionManager,
+  createSmsPayload,
+  createTemplateManager,
   createTencentSmsSender,
   createTwilioSmsSender,
-
-  // 订阅管理
-  SubscriptionManager,
+  createWebhookPayload,
+  createWebhookSignature,
+  createWebPushPayload,
+  formatPhoneNumber,
+  generateVapidKeys,
+  getAvailableChannels,
+  isValidPhoneNumber,
+  isValidPushSubscription,
   MemorySubscriptionStore,
-  createMemorySubscriptionManager,
-
-  // 模板系统
-  TemplateManager,
+  MemoryTaskStore,
   MemoryTemplateStore,
-  createTemplateManager,
   renderTemplateString,
   VERIFICATION_CODE_EMAIL_TEMPLATE,
-
-  // 队列
-  NotificationQueue,
-  MemoryTaskStore,
-  createMemoryNotificationQueue,
+  verifyWebhookSignature,
+  WebPushSender,
 } from "../src/mod.ts";
 
 // ============================================================================
@@ -59,19 +41,19 @@ describe("createWebPushPayload - Web Push Payload 创建", () => {
     });
 
     expect(payload.notification).toBeDefined();
-    expect((payload.notification as any).title).toBe("测试标题");
-    expect((payload.notification as any).body).toBe("测试内容");
+    expect((payload.notification as Record<string, unknown>).title).toBe("测试标题");
+    expect((payload.notification as Record<string, unknown>).body).toBe("测试内容");
   });
 
   it("应该包含选项", () => {
     const payload = createWebPushPayload(
       { title: "测试", body: "内容" },
-      { ttl: 3600, urgency: "high", topic: "test" }
+      { ttl: 3600, urgency: "high", topic: "test" },
     );
 
-    expect((payload.options as any).ttl).toBe(3600);
-    expect((payload.options as any).urgency).toBe("high");
-    expect((payload.options as any).topic).toBe("test");
+    expect((payload.options as Record<string, unknown>).ttl).toBe(3600);
+    expect((payload.options as Record<string, unknown>).urgency).toBe("high");
+    expect((payload.options as Record<string, unknown>).topic).toBe("test");
   });
 });
 
@@ -207,8 +189,8 @@ describe("createWebhookPayload - Webhook Payload 创建", () => {
     });
 
     expect(payload.timestamp).toBeDefined();
-    expect((payload.content as any).title).toBe("测试");
-    expect((payload.content as any).body).toBe("内容");
+    expect((payload.content as Record<string, unknown>).title).toBe("测试");
+    expect((payload.content as Record<string, unknown>).body).toBe("内容");
   });
 });
 
@@ -230,7 +212,11 @@ describe("Webhook 签名", () => {
 
   it("应该拒绝错误的签名", async () => {
     const payload = '{"test": 1}';
-    const result = await verifyWebhookSignature(payload, "wrong-signature", "secret");
+    const result = await verifyWebhookSignature(
+      payload,
+      "wrong-signature",
+      "secret",
+    );
     expect(result.valid).toBe(false);
     expect(result.error).toBeDefined();
   });
@@ -246,7 +232,7 @@ describe("Webhook 签名", () => {
       signature,
       secret,
       "SHA-256",
-      { timestamp: Date.now(), maxAge: 300000 }
+      { timestamp: Date.now(), maxAge: 300000 },
     );
     expect(validResult.valid).toBe(true);
 
@@ -256,7 +242,7 @@ describe("Webhook 签名", () => {
       signature,
       secret,
       "SHA-256",
-      { timestamp: Date.now() - 600000, maxAge: 300000 }
+      { timestamp: Date.now() - 600000, maxAge: 300000 },
     );
     expect(expiredResult.valid).toBe(false);
     expect(expiredResult.error).toContain("过期");
@@ -392,9 +378,15 @@ describe("renderTemplateString - 模板渲染", () => {
   });
 
   it("应该支持过滤器", () => {
-    expect(renderTemplateString("{{name|upper}}", { name: "hello" })).toBe("HELLO");
-    expect(renderTemplateString("{{name|lower}}", { name: "HELLO" })).toBe("hello");
-    expect(renderTemplateString("{{name|capitalize}}", { name: "hello" })).toBe("Hello");
+    expect(renderTemplateString("{{name|upper}}", { name: "hello" })).toBe(
+      "HELLO",
+    );
+    expect(renderTemplateString("{{name|lower}}", { name: "HELLO" })).toBe(
+      "hello",
+    );
+    expect(renderTemplateString("{{name|capitalize}}", { name: "hello" })).toBe(
+      "Hello",
+    );
   });
 });
 
@@ -433,8 +425,9 @@ describe("TemplateManager - 模板管理器", () => {
   });
 
   it("应该注册自定义过滤器", async () => {
-    manager.registerFilter("reverse", (value) =>
-      String(value).split("").reverse().join("")
+    manager.registerFilter(
+      "reverse",
+      (value) => String(value).split("").reverse().join(""),
     );
 
     await manager.register({
@@ -673,7 +666,11 @@ describe("getAvailableChannels - 获取可用渠道", () => {
     const channels = getAvailableChannels({
       webpush: { publicKey: "", privateKey: "", contact: "" },
       email: { host: "", port: 587, username: "", password: "", from: "" },
-      sms: { provider: "aliyun", accessKeyId: "key", accessKeySecret: "secret" },
+      sms: {
+        provider: "aliyun",
+        accessKeyId: "key",
+        accessKeySecret: "secret",
+      },
     });
 
     expect(channels).toContain("webpush");
@@ -883,7 +880,7 @@ describe("SubscriptionManager - 扩展测试", () => {
     const id = await manager.addWebhookSubscription(
       "user_1",
       "https://example.com/webhook",
-      { secret: "secret123" }
+      { secret: "secret123" },
     );
     const sub = await manager.getSubscription(id);
 
@@ -1118,8 +1115,16 @@ describe("NotificationQueue - 扩展测试", () => {
   it("应该获取队列统计", async () => {
     const queue = createMemoryNotificationQueue({});
 
-    await queue.enqueue({ type: "email", recipient: "a@example.com", payload: {} });
-    await queue.enqueue({ type: "email", recipient: "b@example.com", payload: {} });
+    await queue.enqueue({
+      type: "email",
+      recipient: "a@example.com",
+      payload: {},
+    });
+    await queue.enqueue({
+      type: "email",
+      recipient: "b@example.com",
+      payload: {},
+    });
 
     const stats = await queue.getStats();
     expect(stats.total).toBe(2);
@@ -1219,10 +1224,14 @@ describe("TemplateManager - 扩展测试", () => {
       body: "欢迎 {{name}}",
     });
 
-    const enResult = await manager.render("greeting", { name: "John" }, { locale: "en" });
+    const enResult = await manager.render("greeting", { name: "John" }, {
+      locale: "en",
+    });
     expect(enResult.subject).toBe("Hello John");
 
-    const zhResult = await manager.render("greeting", { name: "张三" }, { locale: "zh-CN" });
+    const zhResult = await manager.render("greeting", { name: "张三" }, {
+      locale: "zh-CN",
+    });
     expect(zhResult.subject).toBe("你好 张三");
   });
 });
@@ -1276,7 +1285,12 @@ describe("MemoryTemplateStore - 扩展测试", () => {
 
   it("应该删除模板及其语言版本", async () => {
     await store.save({ id: "test", name: "测试", type: "email" });
-    await store.save({ id: "test", name: "测试", type: "email", locale: "zh-CN" });
+    await store.save({
+      id: "test",
+      name: "测试",
+      type: "email",
+      locale: "zh-CN",
+    });
 
     await store.delete("test");
 
@@ -1371,10 +1385,10 @@ describe("SmsSender - 扩展测试", () => {
 // ============================================================================
 
 import {
+  NEW_MESSAGE_PUSH_TEMPLATE,
+  PASSWORD_RESET_EMAIL_TEMPLATE,
   VERIFICATION_CODE_SMS_TEMPLATE,
   WELCOME_EMAIL_TEMPLATE,
-  PASSWORD_RESET_EMAIL_TEMPLATE,
-  NEW_MESSAGE_PUSH_TEMPLATE,
 } from "../src/mod.ts";
 
 describe("预定义模板 - 扩展测试", () => {

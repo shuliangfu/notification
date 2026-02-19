@@ -14,7 +14,11 @@ import type {
   WebhookOptions,
 } from "./types.ts";
 
-import { createSuccessResult, createErrorResult, generateNotificationId } from "./utils.ts";
+import {
+  createErrorResult,
+  createSuccessResult,
+  generateNotificationId,
+} from "./utils.ts";
 
 // ============================================================================
 // Payload 创建
@@ -29,7 +33,7 @@ import { createSuccessResult, createErrorResult, generateNotificationId } from "
  */
 export function createWebhookPayload(
   content: NotificationContent,
-  options: WebhookOptions = {}
+  options: WebhookOptions = {},
 ): Record<string, unknown> {
   return {
     timestamp: Date.now(),
@@ -71,7 +75,7 @@ export function createWebhookPayload(
 export async function createWebhookSignature(
   payload: string,
   secret: string,
-  algorithm: "SHA-256" | "SHA-384" | "SHA-512" = "SHA-256"
+  algorithm: "SHA-256" | "SHA-384" | "SHA-512" = "SHA-256",
 ): Promise<string> {
   const encoder = new TextEncoder();
   const keyData = encoder.encode(secret);
@@ -82,7 +86,7 @@ export async function createWebhookSignature(
     keyData,
     { name: "HMAC", hash: algorithm },
     false,
-    ["sign"]
+    ["sign"],
   );
 
   const signature = await crypto.subtle.sign("HMAC", key, payloadData);
@@ -130,15 +134,14 @@ export async function verifyWebhookSignature(
   signature: string,
   secret: string,
   algorithm: "SHA-256" | "SHA-384" | "SHA-512" = "SHA-256",
-  timestampOptions?: TimestampValidationOptions
+  timestampOptions?: TimestampValidationOptions,
 ): Promise<{ valid: boolean; error?: string }> {
   // 1. 验证时间戳（防重放攻击）
   if (timestampOptions?.timestamp !== undefined) {
     const maxAge = timestampOptions.maxAge ?? 300000; // 默认 5 分钟
-    const timestamp =
-      typeof timestampOptions.timestamp === "string"
-        ? parseInt(timestampOptions.timestamp, 10)
-        : timestampOptions.timestamp;
+    const timestamp = typeof timestampOptions.timestamp === "string"
+      ? parseInt(timestampOptions.timestamp, 10)
+      : timestampOptions.timestamp;
 
     // 处理秒级时间戳（自动转换）
     const normalizedTimestamp = timestamp < 1e12 ? timestamp * 1000 : timestamp;
@@ -153,12 +156,19 @@ export async function verifyWebhookSignature(
     }
 
     if (age > maxAge) {
-      return { valid: false, error: `请求已过期（${Math.floor(age / 1000)}秒前）` };
+      return {
+        valid: false,
+        error: `请求已过期（${Math.floor(age / 1000)}秒前）`,
+      };
     }
   }
 
   // 2. 验证签名
-  const expectedSignature = await createWebhookSignature(payload, secret, algorithm);
+  const expectedSignature = await createWebhookSignature(
+    payload,
+    secret,
+    algorithm,
+  );
 
   // 使用时间安全比较
   if (signature.length !== expectedSignature.length) {
@@ -226,7 +236,7 @@ export class WebhookSender {
    */
   async send(
     content: NotificationContent,
-    options: WebhookSendOptions = {}
+    options: WebhookSendOptions = {},
   ): Promise<NotificationResult> {
     const {
       timeout = 30000,
@@ -249,7 +259,10 @@ export class WebhookSender {
 
     // 如果有密钥，添加签名
     if (this.config.secret) {
-      const signature = await createWebhookSignature(payloadString, this.config.secret);
+      const signature = await createWebhookSignature(
+        payloadString,
+        this.config.secret,
+      );
       headers[signatureHeader] = signature;
     }
 
@@ -272,16 +285,23 @@ export class WebhookSender {
 
         if (response.ok) {
           const responseData = await response.text();
-          return createSuccessResult(generateNotificationId("webhook"), responseData);
+          return createSuccessResult(
+            generateNotificationId("webhook"),
+            responseData,
+          );
         } else {
-          lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+          lastError = new Error(
+            `HTTP ${response.status}: ${response.statusText}`,
+          );
         }
       } catch (error) {
         lastError = error instanceof Error ? error : new Error(String(error));
 
         // 如果不是最后一次尝试，等待后重试
         if (attempt < retries - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * (attempt + 1))
+          );
         }
       }
     }
@@ -298,9 +318,11 @@ export class WebhookSender {
    */
   async sendBatch(
     contents: NotificationContent[],
-    options: WebhookSendOptions = {}
+    options: WebhookSendOptions = {},
   ): Promise<NotificationResult[]> {
-    return await Promise.all(contents.map((content) => this.send(content, options)));
+    return await Promise.all(
+      contents.map((content) => this.send(content, options)),
+    );
   }
 }
 

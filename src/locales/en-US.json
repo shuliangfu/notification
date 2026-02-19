@@ -1,0 +1,16 @@
+{
+  "notification": {
+    "template": {
+      "notFound": "Template not found: {templateId}"
+    },
+    "queue": {
+      "processError": "Queue process error: {message}",
+      "senderNotConfigured": "Sender for type \"{type}\" not configured",
+      "sendFailed": "Send failed"
+    },
+    "sms": {
+      "invalidPhone": "Invalid phone number: {phone}",
+      "unsupportedProvider": "Unsupported SMS provider: {provider}"
+    }
+  }
+}

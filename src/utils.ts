@@ -5,12 +5,12 @@
  */
 
 import type {
-  NotificationType,
-  NotificationResult,
-  WebPushConfig,
   EmailConfig,
+  NotificationResult,
+  NotificationType,
   SmsConfig,
   WebhookConfig,
+  WebPushConfig,
 } from "./types.ts";
 
 // ============================================================================
@@ -26,7 +26,7 @@ import type {
  */
 export function createSuccessResult(
   messageId?: string,
-  rawResponse?: unknown
+  rawResponse?: unknown,
 ): NotificationResult {
   return {
     success: true,
@@ -44,7 +44,7 @@ export function createSuccessResult(
  */
 export function createErrorResult(
   error: string,
-  rawResponse?: unknown
+  rawResponse?: unknown,
 ): NotificationResult {
   return {
     success: false,

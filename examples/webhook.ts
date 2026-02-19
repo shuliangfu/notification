@@ -5,11 +5,11 @@
  */
 
 import {
-  WebhookSender,
+  createWebhookPayload,
   createWebhookSender,
   createWebhookSignature,
   verifyWebhookSignature,
-  createWebhookPayload,
+  WebhookSender,
 } from "../src/mod.ts";
 
 // ============================================================================
@@ -97,7 +97,11 @@ const validResult = await verifyWebhookSignature(payload, signature, secret);
 console.log("正确签名验证结果:", validResult);
 
 // 验证错误的签名
-const invalidResult = await verifyWebhookSignature(payload, "wrong-signature", secret);
+const invalidResult = await verifyWebhookSignature(
+  payload,
+  "wrong-signature",
+  secret,
+);
 console.log("错误签名验证结果:", invalidResult);
 
 // 验证带时间戳的签名（防重放攻击）
@@ -111,7 +115,7 @@ const timestampValidResult = await verifyWebhookSignature(
   {
     timestamp: Date.now(),
     maxAge: 300000, // 5 分钟有效期
-  }
+  },
 );
 console.log("有效时间戳:", timestampValidResult);
 
@@ -123,7 +127,7 @@ const expiredResult = await verifyWebhookSignature(
   {
     timestamp: Date.now() - 600000, // 10 分钟前
     maxAge: 300000,
-  }
+  },
 );
 console.log("过期时间戳:", expiredResult);
 
@@ -146,7 +150,7 @@ const webhookPayload = createWebhookPayload(
   {
     timeout: 30000,
     retries: 3,
-  }
+  },
 );
 
 console.log("Webhook Payload:");

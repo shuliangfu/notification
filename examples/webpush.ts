@@ -5,9 +5,9 @@
  */
 
 import {
-  WebPushSender,
   generateVapidKeys,
   type PushSubscription,
+  WebPushSender,
 } from "../src/mod.ts";
 
 // ============================================================================
@@ -46,7 +46,8 @@ console.log("\n=== 订阅数据结构 ===\n");
 const subscription: PushSubscription = {
   endpoint: "https://fcm.googleapis.com/fcm/send/xxx",
   keys: {
-    p256dh: "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM",
+    p256dh:
+      "BNcRdreALRFXTkOOUHK1EtK2wtaz5Ry4YfYCA_0QTpQtUbVlUls0VJXg7A8u-Ts1XbjhazAkj7I99e8QcYP7DkM",
     auth: "tBHItJI5svbpez7KI4CCXg",
   },
 };

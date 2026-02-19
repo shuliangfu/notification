@@ -8,14 +8,18 @@
  */
 
 import type {
+  NotificationContent,
+  NotificationResult,
+  PushSubscription,
   WebPushConfig,
   WebPushOptions,
-  NotificationContent,
-  PushSubscription,
-  NotificationResult,
 } from "./types.ts";
 
-import { createSuccessResult, createErrorResult, generateNotificationId } from "./utils.ts";
+import {
+  createErrorResult,
+  createSuccessResult,
+  generateNotificationId,
+} from "./utils.ts";
 
 // ============================================================================
 // Payload 创建
@@ -40,7 +44,7 @@ import { createSuccessResult, createErrorResult, generateNotificationId } from "
  */
 export function createWebPushPayload(
   content: NotificationContent,
-  options: WebPushOptions = {}
+  options: WebPushOptions = {},
 ): Record<string, unknown> {
   return {
     notification: {
@@ -69,7 +73,7 @@ export function createWebPushPayload(
  * @returns 是否有效
  */
 export function isValidPushSubscription(
-  subscription: unknown
+  subscription: unknown,
 ): subscription is PushSubscription {
   if (!subscription || typeof subscription !== "object") {
     return false;
@@ -190,7 +194,7 @@ async function createVapidJwt(
   audience: string,
   subject: string,
   privateKey: CryptoKey,
-  expiration = 12 * 60 * 60
+  expiration = 12 * 60 * 60,
 ): Promise<string> {
   const header = {
     typ: "JWT",
@@ -213,7 +217,7 @@ async function createVapidJwt(
   const signature = await crypto.subtle.sign(
     { name: "ECDSA", hash: "SHA-256" },
     privateKey,
-    encoder.encode(unsignedToken)
+    encoder.encode(unsignedToken),
   );
 
   const signatureB64 = base64UrlEncode(new Uint8Array(signature));
@@ -226,14 +230,48 @@ async function createVapidJwt(
  * @param privateKeyB64 - Base64 URL 编码的私钥
  * @returns CryptoKey
  */
-async function importVapidPrivateKey(privateKeyB64: string): Promise<CryptoKey> {
+async function importVapidPrivateKey(
+  privateKeyB64: string,
+): Promise<CryptoKey> {
   const privateKeyBytes = base64UrlDecode(privateKeyB64);
 
   // PKCS8 格式头部
   const pkcs8Header = new Uint8Array([
-    0x30, 0x41, 0x02, 0x01, 0x00, 0x30, 0x13, 0x06, 0x07, 0x2a, 0x86, 0x48,
-    0xce, 0x3d, 0x02, 0x01, 0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03,
-    0x01, 0x07, 0x04, 0x27, 0x30, 0x25, 0x02, 0x01, 0x01, 0x04, 0x20,
+    0x30,
+    0x41,
+    0x02,
+    0x01,
+    0x00,
+    0x30,
+    0x13,
+    0x06,
+    0x07,
+    0x2a,
+    0x86,
+    0x48,
+    0xce,
+    0x3d,
+    0x02,
+    0x01,
+    0x06,
+    0x08,
+    0x2a,
+    0x86,
+    0x48,
+    0xce,
+    0x3d,
+    0x03,
+    0x01,
+    0x07,
+    0x04,
+    0x27,
+    0x30,
+    0x25,
+    0x02,
+    0x01,
+    0x01,
+    0x04,
+    0x20,
   ]);
 
   const pkcs8Key = new Uint8Array(pkcs8Header.length + privateKeyBytes.length);
@@ -245,7 +283,7 @@ async function importVapidPrivateKey(privateKeyB64: string): Promise<CryptoKey> 
     pkcs8Key,
     { name: "ECDSA", namedCurve: "P-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
 }
 
@@ -305,7 +343,7 @@ export class WebPushSender {
   async send(
     subscription: PushSubscription,
     content: NotificationContent,
-    options: WebPushSendOptions = {}
+    options: WebPushSendOptions = {},
   ): Promise<NotificationResult> {
     // 验证订阅
     if (!isValidPushSubscription(subscription)) {
@@ -332,12 +370,12 @@ export class WebPushSender {
       const jwt = await createVapidJwt(
         audience,
         this.config.contact,
-        this.privateKey
+        this.privateKey,
       );
 
       // 加密 payload
-      const { encryptedPayload, headers: encryptionHeaders } =
-        await this.encryptPayload(payloadBytes, subscription);
+      const { encryptedPayload, headers: encryptionHeaders } = await this
+        .encryptPayload(payloadBytes, subscription);
 
       // 构建请求头
       const headers: Record<string, string> = {
@@ -362,7 +400,10 @@ export class WebPushSender {
       const response = await fetch(subscription.endpoint, {
         method: "POST",
         headers,
-        body: encryptedPayload.buffer.slice(encryptedPayload.byteOffset, encryptedPayload.byteOffset + encryptedPayload.byteLength) as ArrayBuffer,
+        body: encryptedPayload.buffer.slice(
+          encryptedPayload.byteOffset,
+          encryptedPayload.byteOffset + encryptedPayload.byteLength,
+        ) as ArrayBuffer,
       });
 
       if (response.ok) {
@@ -370,12 +411,12 @@ export class WebPushSender {
       } else {
         const errorText = await response.text();
         return createErrorResult(
-          `推送失败: ${response.status} ${response.statusText} - ${errorText}`
+          `推送失败: ${response.status} ${response.statusText} - ${errorText}`,
         );
       }
     } catch (error) {
       return createErrorResult(
-        `推送失败: ${error instanceof Error ? error.message : String(error)}`
+        `推送失败: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -389,8 +430,10 @@ export class WebPushSender {
    */
   private async encryptPayload(
     payload: Uint8Array,
-    subscription: PushSubscription
-  ): Promise<{ encryptedPayload: Uint8Array; headers: Record<string, string> }> {
+    subscription: PushSubscription,
+  ): Promise<
+    { encryptedPayload: Uint8Array; headers: Record<string, string> }
+  > {
     // 解码订阅密钥
     const p256dh = base64UrlDecode(subscription.keys.p256dh);
     const auth = base64UrlDecode(subscription.keys.auth);
@@ -399,30 +442,33 @@ export class WebPushSender {
     const localKeyPair = await crypto.subtle.generateKey(
       { name: "ECDH", namedCurve: "P-256" },
       true,
-      ["deriveBits"]
+      ["deriveBits"],
     );
 
     // 导出本地公钥
     const localPublicKey = await crypto.subtle.exportKey(
       "raw",
-      localKeyPair.publicKey
+      localKeyPair.publicKey,
     );
 
     // 导入订阅公钥
-    const p256dhBuffer = p256dh.buffer.slice(p256dh.byteOffset, p256dh.byteOffset + p256dh.byteLength) as ArrayBuffer;
+    const p256dhBuffer = p256dh.buffer.slice(
+      p256dh.byteOffset,
+      p256dh.byteOffset + p256dh.byteLength,
+    ) as ArrayBuffer;
     const subscriptionPublicKey = await crypto.subtle.importKey(
       "raw",
       p256dhBuffer,
       { name: "ECDH", namedCurve: "P-256" },
       false,
-      []
+      [],
     );
 
     // ECDH 密钥交换
     const sharedSecret = await crypto.subtle.deriveBits(
       { name: "ECDH", public: subscriptionPublicKey },
       localKeyPair.privateKey,
-      256
+      256,
     );
 
     // 生成盐值
@@ -434,28 +480,37 @@ export class WebPushSender {
       auth,
       new Uint8Array(localPublicKey),
       p256dh,
-      salt
+      salt,
     );
 
     // 加密内容
-    const cekBuffer = contentEncryptionKey.buffer.slice(contentEncryptionKey.byteOffset, contentEncryptionKey.byteOffset + contentEncryptionKey.byteLength) as ArrayBuffer;
+    const cekBuffer = contentEncryptionKey.buffer.slice(
+      contentEncryptionKey.byteOffset,
+      contentEncryptionKey.byteOffset + contentEncryptionKey.byteLength,
+    ) as ArrayBuffer;
     const cryptoKey = await crypto.subtle.importKey(
       "raw",
       cekBuffer,
       { name: "AES-GCM" },
       false,
-      ["encrypt"]
+      ["encrypt"],
     );
 
     // 添加 padding
     const paddedPayload = this.addPadding(payload);
 
-    const nonceBuffer = nonce.buffer.slice(nonce.byteOffset, nonce.byteOffset + nonce.byteLength) as ArrayBuffer;
-    const paddedBuffer = paddedPayload.buffer.slice(paddedPayload.byteOffset, paddedPayload.byteOffset + paddedPayload.byteLength) as ArrayBuffer;
+    const nonceBuffer = nonce.buffer.slice(
+      nonce.byteOffset,
+      nonce.byteOffset + nonce.byteLength,
+    ) as ArrayBuffer;
+    const paddedBuffer = paddedPayload.buffer.slice(
+      paddedPayload.byteOffset,
+      paddedPayload.byteOffset + paddedPayload.byteLength,
+    ) as ArrayBuffer;
     const encrypted = await crypto.subtle.encrypt(
       { name: "AES-GCM", iv: nonceBuffer },
       cryptoKey,
-      paddedBuffer
+      paddedBuffer,
     );
 
     // 构建 aes128gcm 格式的消息
@@ -470,7 +525,7 @@ export class WebPushSender {
     header.set(new Uint8Array(localPublicKey), 21);
 
     const encryptedPayload = new Uint8Array(
-      header.length + new Uint8Array(encrypted).length
+      header.length + new Uint8Array(encrypted).length,
     );
     encryptedPayload.set(header);
     encryptedPayload.set(new Uint8Array(encrypted), header.length);
@@ -489,13 +544,21 @@ export class WebPushSender {
     authSecret: Uint8Array,
     localPublicKey: Uint8Array,
     subscriptionPublicKey: Uint8Array,
-    salt: Uint8Array
+    salt: Uint8Array,
   ): Promise<{ contentEncryptionKey: Uint8Array; nonce: Uint8Array }> {
     const encoder = new TextEncoder();
 
     // 创建 info 上下文
-    const keyInfo = this.createInfo("aesgcm", subscriptionPublicKey, localPublicKey);
-    const nonceInfo = this.createInfo("nonce", subscriptionPublicKey, localPublicKey);
+    const keyInfo = this.createInfo(
+      "aesgcm",
+      subscriptionPublicKey,
+      localPublicKey,
+    );
+    const nonceInfo = this.createInfo(
+      "nonce",
+      subscriptionPublicKey,
+      localPublicKey,
+    );
 
     // 使用 HKDF 派生密钥
     const authInfo = encoder.encode("Content-Encoding: auth\0");
@@ -515,7 +578,7 @@ export class WebPushSender {
   private createInfo(
     type: string,
     subscriptionPublicKey: Uint8Array,
-    localPublicKey: Uint8Array
+    localPublicKey: Uint8Array,
   ): Uint8Array {
     const encoder = new TextEncoder();
     const typeBytes = encoder.encode(`Content-Encoding: ${type}\0`);
@@ -527,7 +590,7 @@ export class WebPushSender {
         2 +
         subscriptionPublicKey.length +
         2 +
-        localPublicKey.length
+        localPublicKey.length,
     );
 
     let offset = 0;
@@ -551,18 +614,24 @@ export class WebPushSender {
    */
   private async hkdfExtract(
     salt: Uint8Array,
-    ikm: Uint8Array
+    ikm: Uint8Array,
   ): Promise<Uint8Array> {
     const saltBuffer = salt.length > 0 ? salt : new Uint8Array(32);
-    const saltArrayBuffer = saltBuffer.buffer.slice(saltBuffer.byteOffset, saltBuffer.byteOffset + saltBuffer.byteLength) as ArrayBuffer;
+    const saltArrayBuffer = saltBuffer.buffer.slice(
+      saltBuffer.byteOffset,
+      saltBuffer.byteOffset + saltBuffer.byteLength,
+    ) as ArrayBuffer;
     const key = await crypto.subtle.importKey(
       "raw",
       saltArrayBuffer,
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["sign"]
+      ["sign"],
     );
-    const ikmArrayBuffer = ikm.buffer.slice(ikm.byteOffset, ikm.byteOffset + ikm.byteLength) as ArrayBuffer;
+    const ikmArrayBuffer = ikm.buffer.slice(
+      ikm.byteOffset,
+      ikm.byteOffset + ikm.byteLength,
+    ) as ArrayBuffer;
     const prk = await crypto.subtle.sign("HMAC", key, ikmArrayBuffer);
     return new Uint8Array(prk);
   }
@@ -573,15 +642,18 @@ export class WebPushSender {
   private async hkdfExpand(
     prk: Uint8Array,
     info: Uint8Array,
-    length: number
+    length: number,
   ): Promise<Uint8Array> {
-    const prkArrayBuffer = prk.buffer.slice(prk.byteOffset, prk.byteOffset + prk.byteLength) as ArrayBuffer;
+    const prkArrayBuffer = prk.buffer.slice(
+      prk.byteOffset,
+      prk.byteOffset + prk.byteLength,
+    ) as ArrayBuffer;
     const key = await crypto.subtle.importKey(
       "raw",
       prkArrayBuffer,
       { name: "HMAC", hash: "SHA-256" },
       false,
-      ["sign"]
+      ["sign"],
     );
 
     const result = new Uint8Array(length);
@@ -627,7 +699,7 @@ export class WebPushSender {
   async sendBatch(
     subscriptions: PushSubscription[],
     content: NotificationContent,
-    options: WebPushSendOptions & { concurrency?: number } = {}
+    options: WebPushSendOptions & { concurrency?: number } = {},
   ): Promise<BatchPushResult> {
     const { concurrency = 10, ...sendOptions } = options;
     const results: Array<{
@@ -652,7 +724,7 @@ export class WebPushSender {
           }
 
           return { subscription, result };
-        })
+        }),
       );
       results.push(...batchResults);
     }
@@ -690,7 +762,7 @@ export async function generateVapidKeys(): Promise<VapidKeys> {
   const keyPair = await crypto.subtle.generateKey(
     { name: "ECDSA", namedCurve: "P-256" },
     true,
-    ["sign", "verify"]
+    ["sign", "verify"],
   );
 
   // 导出公钥（uncompressed 格式）
@@ -698,7 +770,10 @@ export async function generateVapidKeys(): Promise<VapidKeys> {
   const publicKey = base64UrlEncode(new Uint8Array(publicKeyRaw));
 
   // 导出私钥
-  const privateKeyJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
+  const privateKeyJwk = await crypto.subtle.exportKey(
+    "jwk",
+    keyPair.privateKey,
+  );
   const privateKey = privateKeyJwk.d!;
 
   return { publicKey, privateKey };

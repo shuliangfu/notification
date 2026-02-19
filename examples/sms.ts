@@ -19,9 +19,9 @@ console.log("=== 手机号验证 ===\n");
 const phoneNumbers = [
   "13800138000",
   "15912345678",
-  "12345678",      // 无效
+  "12345678", // 无效
   "1234567890123", // 太长
-  "08612345678",   // 无效格式
+  "08612345678", // 无效格式
 ];
 
 for (const phone of phoneNumbers) {
@@ -37,7 +37,7 @@ console.log("\n=== 阿里云短信 ===\n");
 const _aliyunSender = createAliyunSmsSender(
   "your-access-key-id",
   "your-access-key-secret",
-  "我的应用"
+  "我的应用",
 );
 
 console.log("阿里云短信发送器创建成功");
@@ -69,7 +69,7 @@ const _tencentSender = createTencentSmsSender(
   "your-secret-id",
   "your-secret-key",
   "1400000000",
-  "我的应用"
+  "我的应用",
 );
 
 console.log("腾讯云短信发送器创建成功");

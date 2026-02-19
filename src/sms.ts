@@ -7,9 +7,14 @@
  * - Twilio
  */
 
-import type { SmsOptions, NotificationResult } from "./types.ts";
+import type { NotificationResult, SmsOptions } from "./types.ts";
 
-import { createSuccessResult, createErrorResult, generateNotificationId } from "./utils.ts";
+import { $tr } from "./i18n.ts";
+import {
+  createErrorResult,
+  createSuccessResult,
+  generateNotificationId,
+} from "./utils.ts";
 
 // ============================================================================
 // 手机号验证
@@ -138,7 +143,10 @@ export interface TwilioSmsConfig {
 /**
  * 统一短信配置类型
  */
-export type SmsSenderConfig = AliyunSmsConfig | TencentSmsConfig | TwilioSmsConfig;
+export type SmsSenderConfig =
+  | AliyunSmsConfig
+  | TencentSmsConfig
+  | TwilioSmsConfig;
 
 /**
  * 发送短信选项
@@ -182,24 +190,30 @@ export interface BatchSmsResult {
  * @param data - 数据
  * @returns 签名（十六进制）
  */
-async function hmacSha256(key: string | Uint8Array, data: string): Promise<string> {
+async function hmacSha256(
+  key: string | Uint8Array,
+  data: string,
+): Promise<string> {
   const encoder = new TextEncoder();
   const keyData = typeof key === "string" ? encoder.encode(key) : key;
   // 转换为 ArrayBuffer
-  const keyBuffer = keyData.buffer.slice(keyData.byteOffset, keyData.byteOffset + keyData.byteLength) as ArrayBuffer;
+  const keyBuffer = keyData.buffer.slice(
+    keyData.byteOffset,
+    keyData.byteOffset + keyData.byteLength,
+  ) as ArrayBuffer;
 
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
     keyBuffer,
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
 
   const signature = await crypto.subtle.sign(
     "HMAC",
     cryptoKey,
-    encoder.encode(data)
+    encoder.encode(data),
   );
 
   return Array.from(new Uint8Array(signature))
@@ -210,23 +224,29 @@ async function hmacSha256(key: string | Uint8Array, data: string): Promise<strin
 /**
  * 生成 HMAC-SHA256 签名（返回 Uint8Array）
  */
-async function hmacSha256Bytes(key: Uint8Array, data: string): Promise<Uint8Array> {
+async function hmacSha256Bytes(
+  key: Uint8Array,
+  data: string,
+): Promise<Uint8Array> {
   const encoder = new TextEncoder();
   // 转换为 ArrayBuffer
-  const keyBuffer = key.buffer.slice(key.byteOffset, key.byteOffset + key.byteLength) as ArrayBuffer;
+  const keyBuffer = key.buffer.slice(
+    key.byteOffset,
+    key.byteOffset + key.byteLength,
+  ) as ArrayBuffer;
 
   const cryptoKey = await crypto.subtle.importKey(
     "raw",
     keyBuffer,
     { name: "HMAC", hash: "SHA-256" },
     false,
-    ["sign"]
+    ["sign"],
   );
 
   const signature = await crypto.subtle.sign(
     "HMAC",
     cryptoKey,
-    encoder.encode(data)
+    encoder.encode(data),
   );
 
   return new Uint8Array(signature);
@@ -237,7 +257,10 @@ async function hmacSha256Bytes(key: Uint8Array, data: string): Promise<Uint8Arra
  */
 async function sha256(data: string): Promise<string> {
   const encoder = new TextEncoder();
-  const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(data));
+  const hashBuffer = await crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(data),
+  );
   return Array.from(new Uint8Array(hashBuffer))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
@@ -265,7 +288,9 @@ class AliyunSmsSender {
    * 发送短信
    */
   async send(options: SmsSendOptions): Promise<NotificationResult> {
-    const phones = Array.isArray(options.phone) ? options.phone : [options.phone];
+    const phones = Array.isArray(options.phone)
+      ? options.phone
+      : [options.phone];
 
     // 验证手机号
     const invalidPhones = phones.filter((p) => !isValidPhoneNumber(p));
@@ -302,11 +327,15 @@ class AliyunSmsSender {
         .join("&");
 
       // 计算签名
-      const stringToSign = `GET&${encodeURIComponent("/")}&${encodeURIComponent(canonicalQuery)}`;
+      const stringToSign = `GET&${encodeURIComponent("/")}&${
+        encodeURIComponent(canonicalQuery)
+      }`;
       const signature = await this.sign(stringToSign);
 
       // 发送请求
-      const url = `https://dysmsapi.aliyuncs.com/?${canonicalQuery}&Signature=${encodeURIComponent(signature)}`;
+      const url = `https://dysmsapi.aliyuncs.com/?${canonicalQuery}&Signature=${
+        encodeURIComponent(signature)
+      }`;
 
       const response = await fetch(url, { method: "GET" });
       const data = await response.json();
@@ -314,11 +343,15 @@ class AliyunSmsSender {
       if (data.Code === "OK") {
         return createSuccessResult(data.BizId || generateNotificationId("sms"));
       } else {
-        return createErrorResult(`阿里云短信发送失败: ${data.Message || data.Code}`);
+        return createErrorResult(
+          `阿里云短信发送失败: ${data.Message || data.Code}`,
+        );
       }
     } catch (error) {
       return createErrorResult(
-        `阿里云短信发送失败: ${error instanceof Error ? error.message : String(error)}`
+        `阿里云短信发送失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       );
     }
   }
@@ -335,13 +368,13 @@ class AliyunSmsSender {
       key,
       { name: "HMAC", hash: "SHA-1" },
       false,
-      ["sign"]
+      ["sign"],
     );
 
     const signature = await crypto.subtle.sign(
       "HMAC",
       cryptoKey,
-      encoder.encode(stringToSign)
+      encoder.encode(stringToSign),
     );
 
     return btoa(String.fromCharCode(...new Uint8Array(signature)));
@@ -369,12 +402,14 @@ class TencentSmsSender {
    * 发送短信
    */
   async send(options: SmsSendOptions): Promise<NotificationResult> {
-    const phones = Array.isArray(options.phone) ? options.phone : [options.phone];
+    const phones = Array.isArray(options.phone)
+      ? options.phone
+      : [options.phone];
 
     // 验证并格式化手机号
     const formattedPhones = phones.map((p) => {
       if (!isValidPhoneNumber(p)) {
-        throw new Error(`无效的手机号: ${p}`);
+        throw new Error($tr("notification.sms.invalidPhone", { phone: p }));
       }
       // 腾讯云需要 +86 格式
       return formatPhoneNumber(p);
@@ -428,7 +463,7 @@ class TencentSmsSender {
       const encoder = new TextEncoder();
       const secretDate = await hmacSha256Bytes(
         encoder.encode("TC3" + this.config.secretKey),
-        date
+        date,
       );
       const secretService = await hmacSha256Bytes(secretDate, service);
       const secretSigning = await hmacSha256Bytes(secretService, "tc3_request");
@@ -461,18 +496,20 @@ class TencentSmsSender {
 
       if (data.Response?.SendStatusSet?.[0]?.Code === "Ok") {
         return createSuccessResult(
-          data.Response.SendStatusSet[0].SerialNo || generateNotificationId("sms")
+          data.Response.SendStatusSet[0].SerialNo ||
+            generateNotificationId("sms"),
         );
       } else {
-        const errorMsg =
-          data.Response?.Error?.Message ||
+        const errorMsg = data.Response?.Error?.Message ||
           data.Response?.SendStatusSet?.[0]?.Message ||
           "未知错误";
         return createErrorResult(`腾讯云短信发送失败: ${errorMsg}`);
       }
     } catch (error) {
       return createErrorResult(
-        `腾讯云短信发送失败: ${error instanceof Error ? error.message : String(error)}`
+        `腾讯云短信发送失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       );
     }
   }
@@ -496,7 +533,9 @@ class TwilioSmsSender {
    * 发送短信
    */
   async send(options: SmsSendOptions): Promise<NotificationResult> {
-    const phones = Array.isArray(options.phone) ? options.phone : [options.phone];
+    const phones = Array.isArray(options.phone)
+      ? options.phone
+      : [options.phone];
 
     // Twilio 需要逐个发送
     if (phones.length > 1) {
@@ -514,7 +553,8 @@ class TwilioSmsSender {
       : `Template: ${options.templateId}`;
 
     try {
-      const url = `https://api.twilio.com/2010-04-01/Accounts/${this.config.accountSid}/Messages.json`;
+      const url =
+        `https://api.twilio.com/2010-04-01/Accounts/${this.config.accountSid}/Messages.json`;
 
       const formData = new URLSearchParams();
       formData.append("To", formatPhoneNumber(phone, "1")); // 默认美国
@@ -538,12 +578,14 @@ class TwilioSmsSender {
         return createSuccessResult(data.sid || generateNotificationId("sms"));
       } else {
         return createErrorResult(
-          `Twilio 短信发送失败: ${data.message || data.code || "未知错误"}`
+          `Twilio 短信发送失败: ${data.message || data.code || "未知错误"}`,
         );
       }
     } catch (error) {
       return createErrorResult(
-        `Twilio 短信发送失败: ${error instanceof Error ? error.message : String(error)}`
+        `Twilio 短信发送失败: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
       );
     }
   }
@@ -593,7 +635,11 @@ export class SmsSender {
         this.sender = new TwilioSmsSender(config);
         break;
       default:
-        throw new Error(`不支持的短信服务提供商: ${(config as SmsSenderConfig).provider}`);
+        throw new Error(
+          $tr("notification.sms.unsupportedProvider", {
+            provider: (config as SmsSenderConfig).provider,
+          }),
+        );
     }
   }
 
@@ -627,13 +673,15 @@ export class SmsSender {
     phoneList: string[],
     templateId: string,
     templateParams?: Record<string, string>,
-    options: { concurrency?: number; signName?: string } = {}
+    options: { concurrency?: number; signName?: string } = {},
   ): Promise<BatchSmsResult> {
     const { concurrency = 10, signName } = options;
     const results: Array<{ phone: string; result: NotificationResult }> = [];
 
     // 阿里云和腾讯云支持批量发送
-    if (this.config.provider === "aliyun" || this.config.provider === "tencent") {
+    if (
+      this.config.provider === "aliyun" || this.config.provider === "tencent"
+    ) {
       // 分批发送（每批最多 1000 个）
       const batchSize = 1000;
       for (let i = 0; i < phoneList.length; i += batchSize) {
@@ -663,7 +711,7 @@ export class SmsSender {
               signName,
             });
             return { phone, result };
-          })
+          }),
         );
         results.push(...batchResults);
       }
@@ -691,7 +739,7 @@ export class SmsSender {
   async sendVerificationCode(
     phone: string,
     code: string,
-    templateId: string
+    templateId: string,
   ): Promise<NotificationResult> {
     return await this.send({
       phone,
@@ -721,7 +769,7 @@ export function createSmsSender(config: SmsSenderConfig): SmsSender {
 export function createAliyunSmsSender(
   accessKeyId: string,
   accessKeySecret: string,
-  signName: string
+  signName: string,
 ): SmsSender {
   return new SmsSender({
     provider: "aliyun",
@@ -738,7 +786,7 @@ export function createTencentSmsSender(
   secretId: string,
   secretKey: string,
   sdkAppId: string,
-  signName: string
+  signName: string,
 ): SmsSender {
   return new SmsSender({
     provider: "tencent",
@@ -755,7 +803,7 @@ export function createTencentSmsSender(
 export function createTwilioSmsSender(
   accountSid: string,
   authToken: string,
-  fromNumber: string
+  fromNumber: string,
 ): SmsSender {
   return new SmsSender({
     provider: "twilio",

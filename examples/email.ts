@@ -5,8 +5,8 @@
  */
 
 import {
-  EmailSender,
   createEmailSender,
+  EmailSender,
   isValidEmail,
   validateEmails,
 } from "../src/mod.ts";

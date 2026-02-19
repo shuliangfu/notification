@@ -5,10 +5,10 @@
  */
 
 import {
-  TemplateManager,
   MemoryTemplateStore,
-  renderTemplateString,
   type NotificationTemplate,
+  renderTemplateString,
+  TemplateManager,
 } from "../src/mod.ts";
 
 // ============================================================================
@@ -117,8 +117,8 @@ console.log("安全渲染（默认）:", safeResult);
 // 关闭转义（谨慎使用）
 const unsafeResult = renderTemplateString(
   xssTemplate,
-  { userInput: '<b>粗体</b>' },
-  { escapeHtml: false }
+  { userInput: "<b>粗体</b>" },
+  { escapeHtml: false },
 );
 console.log("不转义（HTML 模板）:", unsafeResult);
 
@@ -196,14 +196,15 @@ await manager.register({
   type: "email",
   locale: "en-US",
   subject: "Order Confirmation - {{orderId}}",
-  body: "Your order {{orderId}} has been confirmed. Estimated delivery: {{deliveryDate}}.",
+  body:
+    "Your order {{orderId}} has been confirmed. Estimated delivery: {{deliveryDate}}.",
 });
 
 // 渲染中文
 const zhResult = await manager.render(
   "order-confirm",
   { orderId: "ORD-001", deliveryDate: "2024-01-20" },
-  { locale: "zh-CN" }
+  { locale: "zh-CN" },
 );
 console.log("中文:", zhResult.body);
 
@@ -211,7 +212,7 @@ console.log("中文:", zhResult.body);
 const enResult = await manager.render(
   "order-confirm",
   { orderId: "ORD-001", deliveryDate: "Jan 20, 2024" },
-  { locale: "en-US" }
+  { locale: "en-US" },
 );
 console.log("英文:", enResult.body);
 
@@ -234,7 +235,7 @@ manager.registerFilter("money", (value) => {
 // 使用自定义过滤器渲染
 const customResult = manager.renderString(
   "手机号: {{phone|phone}}, 金额: {{amount|money}}",
-  { phone: "13812345678", amount: 1234.5 }
+  { phone: "13812345678", amount: 1234.5 },
 );
 console.log("自定义过滤器:", customResult);
 

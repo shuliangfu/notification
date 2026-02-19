@@ -2,20 +2,20 @@
  * @fileoverview 邮件发送模块测试
  */
 
-import { describe, it, expect, beforeEach } from "@dreamer/test";
+import { describe, expect, it } from "@dreamer/test";
 import {
-  EmailSender,
   createEmailSender,
-  type EmailTemplate,
+  EmailSender,
   type EmailSenderConfig,
+  type EmailTemplate,
 } from "../src/email.ts";
 import {
   createEmailPayload,
+  createErrorResult,
+  createSuccessResult,
+  generateNotificationId,
   isValidEmail,
   validateEmails,
-  createSuccessResult,
-  createErrorResult,
-  generateNotificationId,
 } from "../src/mod.ts";
 
 // ============================================================================

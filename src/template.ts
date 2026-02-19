@@ -9,6 +9,7 @@
  */
 
 import type { NotificationType } from "./types.ts";
+import { $tr } from "./i18n.ts";
 
 // ============================================================================
 // 类型定义
@@ -165,7 +166,9 @@ export class MemoryTemplateStore implements TemplateStore {
    * 获取所有模板
    */
   getAll(): Promise<NotificationTemplate[]> {
-    return Promise.resolve(Array.from(this.templates.values()).map((t) => ({ ...t })));
+    return Promise.resolve(
+      Array.from(this.templates.values()).map((t) => ({ ...t })),
+    );
   }
 
   /**
@@ -175,7 +178,7 @@ export class MemoryTemplateStore implements TemplateStore {
     return Promise.resolve(
       Array.from(this.templates.values())
         .filter((t) => t.type === type)
-        .map((t) => ({ ...t }))
+        .map((t) => ({ ...t })),
     );
   }
 }
@@ -280,10 +283,11 @@ const builtinFilters: Record<string, (value: unknown) => string> = {
 export function renderTemplateString(
   template: string,
   data: Record<string, unknown>,
-  options: RenderOptions = {}
+  options: RenderOptions = {},
 ): string {
   // 安全默认：开启 HTML 转义防止 XSS 攻击
-  const { escapeHtml: shouldEscape = true, defaultValue = "", filters = {} } = options;
+  const { escapeHtml: shouldEscape = true, defaultValue = "", filters = {} } =
+    options;
   const allFilters = { ...builtinFilters, ...filters };
 
   let result = template;
@@ -294,7 +298,7 @@ export function renderTemplateString(
     (_match, condition, content) => {
       const value = getNestedValue(data, condition);
       return value ? content : "";
-    }
+    },
   );
 
   // 处理 else {{#if condition}}...{{else}}...{{/if}}
@@ -303,7 +307,7 @@ export function renderTemplateString(
     (_match, condition, ifContent, elseContent) => {
       const value = getNestedValue(data, condition);
       return value ? ifContent : elseContent;
-    }
+    },
   );
 
   // 处理循环渲染 {{#each array}}...{{/each}}
@@ -326,13 +330,13 @@ export function renderTemplateString(
             itemResult = renderTemplateString(
               itemResult,
               item as Record<string, unknown>,
-              options
+              options,
             );
           }
           return itemResult;
         })
         .join("");
-    }
+    },
   );
 
   // 处理变量替换 {{variable}} 或 {{variable|filter}}
@@ -358,7 +362,7 @@ export function renderTemplateString(
       }
 
       return strValue;
-    }
+    },
   );
 
   return result;
@@ -401,7 +405,7 @@ export class TemplateManager {
     defaultLocale?: string;
   }) {
     this.store = options.store;
-    this.defaultLocale = options.defaultLocale || "zh-CN";
+    this.defaultLocale = options.defaultLocale || "en-US";
   }
 
   /**
@@ -481,13 +485,13 @@ export class TemplateManager {
   async render(
     templateId: string,
     data: Record<string, unknown>,
-    options: RenderOptions = {}
+    options: RenderOptions = {},
   ): Promise<RenderResult> {
     const locale = options.locale || this.defaultLocale;
     const template = await this.store.get(templateId, locale);
 
     if (!template) {
-      throw new Error(`模板不存在: ${templateId}`);
+      throw new Error($tr("notification.template.notFound", { templateId }));
     }
 
     const renderOptions: RenderOptions = {
@@ -513,7 +517,11 @@ export class TemplateManager {
     }
 
     if (template.subject) {
-      result.subject = renderTemplateString(template.subject, data, renderOptions);
+      result.subject = renderTemplateString(
+        template.subject,
+        data,
+        renderOptions,
+      );
     }
 
     return result;
@@ -530,7 +538,7 @@ export class TemplateManager {
   renderString(
     template: string,
     data: Record<string, unknown>,
-    options: RenderOptions = {}
+    options: RenderOptions = {},
   ): string {
     return renderTemplateString(template, data, {
       ...options,

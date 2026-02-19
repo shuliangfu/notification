@@ -1,0 +1,16 @@
+{
+  "notification": {
+    "template": {
+      "notFound": "模板不存在: {templateId}"
+    },
+    "queue": {
+      "processError": "队列处理错误: {message}",
+      "senderNotConfigured": "未配置 {type} 类型的发送器",
+      "sendFailed": "发送失败"
+    },
+    "sms": {
+      "invalidPhone": "无效的手机号: {phone}",
+      "unsupportedProvider": "不支持的短信服务提供商: {provider}"
+    }
+  }
+}

@@ -1,16 +1,16 @@
 # @dreamer/notification 示例
 
-本目录包含 `@dreamer/notification` 库的使用示例。
+本目录包含 `@dreamer/notification` 包的使用示例。
 
 ## 示例列表
 
-| 文件 | 说明 |
-|------|------|
-| [email.ts](./email.ts) | 邮件发送：SMTP 配置、HTML 邮件、附件、批量发送 |
-| [sms.ts](./sms.ts) | 短信发送：阿里云、腾讯云、验证码 |
-| [webhook.ts](./webhook.ts) | Webhook 通知：签名生成、验证、时间戳防重放 |
-| [template.ts](./template.ts) | 模板系统：变量替换、条件、循环、过滤器 |
-| [webpush.ts](./webpush.ts) | Web Push：VAPID 密钥、订阅、推送通知 |
+| 文件                         | 说明                                           |
+| ---------------------------- | ---------------------------------------------- |
+| [email.ts](./email.ts)       | 邮件发送：SMTP 配置、HTML 邮件、附件、批量发送 |
+| [sms.ts](./sms.ts)           | 短信发送：阿里云、腾讯云、验证码               |
+| [webhook.ts](./webhook.ts)   | Webhook 通知：签名生成、验证、时间戳防重放     |
+| [template.ts](./template.ts) | 模板系统：变量替换、条件、循环、过滤器         |
+| [webpush.ts](./webpush.ts)   | Web Push：VAPID 密钥、订阅、推送通知           |
 
 ## 运行示例
 
