@@ -2,19 +2,19 @@
 
 > 📖 [English](../../README.md) | 中文
 
-> 一个兼容 Deno 和 Bun
+> 一个兼容 Deno、Bun 和 Node.js
 > 的通知库，提供多渠道通知发送、订阅管理、模板系统和发送队列功能
 
 [![JSR](https://jsr.io/badges/@dreamer/notification)](https://jsr.io/@dreamer/notification)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](../../LICENSE)
-[![Tests](https://img.shields.io/badge/tests-114%20passed-brightgreen)](./TEST_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-115%20passed%20(三端)-brightgreen)](./TEST_REPORT.md)
 
 ---
 
 ## 🎯 功能
 
 通知发送包，用于多渠道消息推送、订阅管理和通知模板，提供 Web
-Push、邮件、短信、Webhook 等多渠道发送能力。
+Push、邮件、短信、Webhook 等多渠道发送能力，兼容 Deno、Bun 与 Node.js 22+。
 
 ---
 
@@ -32,14 +32,24 @@ deno add jsr:@dreamer/notification
 bunx jsr add @dreamer/notification
 ```
 
+### Node.js
+
+```bash
+npx jsr add @dreamer/notification
+```
+
+> 需要 Node.js 22+。使用 Node 22+ 全局已提供的 `fetch` / `crypto.subtle` /
+> `AbortController`；邮件发送复用 `@dreamer/email` v1.1.0 `SmtpClient`。
+
 ---
 
 ## 🌍 环境兼容性
 
 | 环境       | 版本要求 | 状态                                          |
 | ---------- | -------- | --------------------------------------------- |
-| **Deno**   | 2.5.0+   | ✅ 完全支持                                   |
-| **Bun**    | 1.0+     | ✅ 完全支持                                   |
+| **Deno**   | 2.9+     | ✅ 完全支持                                   |
+| **Bun**    | 1.3+     | ✅ 完全支持                                   |
+| **Node.js**| 22+      | ✅ 完全支持（自 v1.1.0 起）                   |
 | **服务端** | -        | ✅ 支持（推送通知、邮件、短信、Webhook 发送） |
 | **客户端** | -        | ⚠️ 部分支持（仅 Payload 创建和验证功能）      |
 | **依赖**   | -        | 📦 @dreamer/email（邮件发送）                 |

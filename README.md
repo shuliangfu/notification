@@ -2,12 +2,12 @@
 
 > 📖 English | [中文文档](./docs/zh-CN/README.md)
 
-> A notification library for Deno and Bun: multi-channel sending, subscription
-> management, template system, and send queue.
+> A notification library for Deno, Bun and Node.js: multi-channel sending,
+> subscription management, template system, and send queue.
 
 [![JSR](https://jsr.io/badges/@dreamer/notification)](https://jsr.io/@dreamer/notification)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
-[![Tests](https://img.shields.io/badge/tests-114%20passed-brightgreen)](./docs/en-US/TEST_REPORT.md)
+[![Tests](https://img.shields.io/badge/tests-115%20passed%20(3%20runtimes)-brightgreen)](./docs/en-US/TEST_REPORT.md)
 
 ---
 
@@ -32,14 +32,25 @@ deno add jsr:@dreamer/notification
 bunx jsr add @dreamer/notification
 ```
 
+### Node.js
+
+```bash
+npx jsr add @dreamer/notification
+```
+
+> Requires Node.js 22+. Uses global `fetch` / `crypto.subtle` / `AbortController`
+> (available in Node 22+); email sending reuses `@dreamer/email` v1.1.0
+> `SmtpClient`.
+
 ---
 
 ## Environment compatibility
 
 | Environment      | Version | Status                                              |
 | ---------------- | ------- | --------------------------------------------------- |
-| **Deno**         | 2.5.0+  | ✅ Fully supported                                  |
-| **Bun**          | 1.0+    | ✅ Fully supported                                  |
+| **Deno**         | 2.9+    | ✅ Fully supported                                  |
+| **Bun**          | 1.3+    | ✅ Fully supported                                  |
+| **Node.js**      | 22+     | ✅ Fully supported (since v1.1.0)                   |
 | **Server**       | -       | ✅ Supported (push, email, SMS, Webhook sending)    |
 | **Client**       | -       | ⚠️ Partial (Payload creation and verification only) |
 | **Dependencies** | -       | 📦 @dreamer/email (for email sending)               |
