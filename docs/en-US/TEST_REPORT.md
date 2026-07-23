@@ -4,24 +4,26 @@
 
 ## Overview
 
-| Item                | Value                                |
-| ------------------- | ------------------------------------ |
-| **Package version** | `@dreamer/notification@1.0.0-beta.1` |
-| **Service version** | `@dreamer/service@1.0.0-beta.4`      |
-| **Test date**       | 2026-01-30                           |
-| **Test framework**  | `@dreamer/test`                      |
-| **Total tests**     | 114                                  |
-| **Passed**          | 114                                  |
-| **Failed**          | 0                                    |
-| **Branch coverage** | 73.0%                                |
-| **Line coverage**   | 46.5%                                |
+| Item                | Value                                                                  |
+| ------------------- | --------------------------------------------------------------------- |
+| **Package version** | `@dreamer/notification@1.1.0`                                         |
+| **Command**         | Deno: `deno test -A tests/` · Bun: `bun test tests/` · Node: `npm run test:node` |
+| **Environment**     | Deno 2.9+ / Bun 1.3+ / Node.js 22+                                    |
+| **Test framework**  | `@dreamer/test@^1.2.3`                                                |
+| **Total tests**     | 117 (Deno) / 115 (Bun) / 115 (Node)                                   |
+| **Passed**          | 117 / 115 / 115                                                       |
+| **Failed**          | 0 / 0 / 0                                                             |
+
+> The Deno test runner counts 2 framework teardown steps in the total, so Deno
+> reports 117 while Bun/Node report 115; the business `it()` cases are identical
+> across runtimes, all with 0 failures.
 
 ## Test file summary
 
 | File                  | Count |
 | --------------------- | ----- |
 | `tests/email.test.ts` | 21    |
-| `tests/mod.test.ts`   | 93    |
+| `tests/mod.test.ts`   | 94    |
 
 ## Test case details
 

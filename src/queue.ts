@@ -362,7 +362,7 @@ export class MemoryTaskStore implements TaskStore {
 export class NotificationQueue {
   private config: Required<QueueConfig>;
   private running = false;
-  private pollTimer?: number;
+  private pollTimer?: ReturnType<typeof setTimeout>;
   private processingCount = 0;
 
   constructor(config: QueueConfig) {
@@ -552,7 +552,7 @@ export class NotificationQueue {
     if (this.running) {
       this.pollTimer = setTimeout(() => {
         this.poll();
-      }, this.config.pollInterval) as unknown as number;
+      }, this.config.pollInterval);
     }
   }
 

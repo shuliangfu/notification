@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [1.1.0] - 2026-07-23
+
+### Added
+
+- **Node.js compatibility**: notification now runs on Node 22+. `src/` uses only
+  cross-runtime Web APIs (`crypto.subtle`, `fetch`, `AbortController`) already
+  provided by Node 22+ globals; email sending reuses the now Node-compatible
+  `@dreamer/email` v1.1.0 `SmtpClient`.
+- **Node.js test infra**: Added `tsconfig.json`, `ci.yml` (9-job: 3 Deno v2.9 +
+  3 Bun + 3 Node 22); `test:node` driven by `tsx --test --test-force-exit`;
+  Deno/Bun/Node share the same `tests/*.test.ts` suite.
+
+### Changed
+
+- **src/queue.ts**: `pollTimer` type changed from `number` to
+  `ReturnType<typeof setTimeout>` (resolves to `NodeJS.Timeout` on Node) and
+  removed the `as unknown as number` cast on `setTimeout` assignment.
+- **src/subscription.ts**: `cleanupTimer` type changed from `number` to
+  `ReturnType<typeof setInterval>` and removed the `as unknown as number` cast.
+- **tests/mod.test.ts**: Added module-level `setNotificationLocale("zh-CN")`
+  lock so the `manager.render("nonexistent")` → `$tr("notification.template.notFound")`
+  assertion ("模板不存在") passes under CI's English locale.
+- **Dependencies**: `@dreamer/email` ^1.1.0, `@dreamer/i18n` ^1.1.2,
+  `@dreamer/runtime-adapter` ^1.2.2, `@dreamer/test` ^1.2.3.
+- **deno.json**: Added `minimumDependencyAge: 0`.
+- **.gitignore**: Added `package-lock.json`.
+
+### Compatibility
+
+- Deno 2.9+ / Bun 1.3+ / Node.js 22+
+
+---
+
 ## [1.0.0] - 2026-02-19
 
 ### Added

@@ -7,6 +7,38 @@
 
 ---
 
+## [1.1.0] - 2026-07-23
+
+### 新增
+
+- **Node.js 兼容**：notification 现可在 Node 22+ 运行。`src/` 仅使用 Node 22+
+  全局已提供的跨运行时 Web API（`crypto.subtle`、`fetch`、`AbortController`）；
+  邮件发送复用现已支持 Node 的 `@dreamer/email` v1.1.0 `SmtpClient`。
+- **Node.js 测试基建**：新增 `tsconfig.json`、`ci.yml`（9-job：3 Deno v2.9 +
+  3 Bun + 3 Node 22），`test:node` 由 `tsx --test --test-force-exit` 驱动；
+  Deno/Bun/Node 共享同一套 `tests/*.test.ts`。
+
+### 变更
+
+- **src/queue.ts**：`pollTimer` 类型由 `number` 改为
+  `ReturnType<typeof setTimeout>`（Node 上解析为 `NodeJS.Timeout`），并移除
+  `setTimeout` 赋值处的 `as unknown as number` 强制转换。
+- **src/subscription.ts**：`cleanupTimer` 类型由 `number` 改为
+  `ReturnType<typeof setInterval>`，并移除 `as unknown as number` 强制转换。
+- **tests/mod.test.ts**：模块级新增 `setNotificationLocale("zh-CN")` 锁定，
+  使 `manager.render("nonexistent")` → `$tr("notification.template.notFound")`
+  的断言（"模板不存在"）在 CI 英文 locale 下仍通过。
+- **依赖**：`@dreamer/email` ^1.1.0、`@dreamer/i18n` ^1.1.2、
+  `@dreamer/runtime-adapter` ^1.2.2、`@dreamer/test` ^1.2.3。
+- **deno.json**：新增 `minimumDependencyAge: 0`。
+- **.gitignore**：新增 `package-lock.json`。
+
+### 兼容性
+
+- Deno 2.9+ / Bun 1.3+ / Node.js 22+
+
+---
+
 ## [1.0.0] - 2026-02-19
 
 ### 新增

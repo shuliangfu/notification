@@ -258,7 +258,7 @@ export class MemorySubscriptionStore implements SubscriptionStore {
  */
 export class SubscriptionManager {
   private store: SubscriptionStore;
-  private cleanupTimer?: number;
+  private cleanupTimer?: ReturnType<typeof setInterval>;
 
   constructor(options: SubscriptionManagerOptions) {
     this.store = options.store;
@@ -268,7 +268,7 @@ export class SubscriptionManager {
       const interval = options.cleanupInterval || 3600000; // 默认 1 小时
       this.cleanupTimer = setInterval(() => {
         this.cleanup();
-      }, interval) as unknown as number;
+      }, interval);
     }
   }
 

@@ -28,6 +28,10 @@ import {
   verifyWebhookSignature,
   WebPushSender,
 } from "../src/mod.ts";
+import { setNotificationLocale } from "../src/i18n.ts";
+
+// 锁定中文 locale，避免 CI 英文环境下 $tr 返回英文文案导致断言失败
+setNotificationLocale("zh-CN");
 
 // ============================================================================
 // Web Push 测试
